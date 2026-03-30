@@ -1,0 +1,725 @@
+<style>
+input, select {
+    width: 100% !important;
+}
+@media (max-width: 768px) {
+    .card-header h6 {
+        font-size: 14px;
+    }
+
+    .navbar-brand {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    table {
+        font-size: 11px;
+    }
+
+    th, td {
+        padding: 6px !important;
+    }
+
+    .btn {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
+select {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+a.icon-link {
+    text-decoration: none;
+}
+a.icon-link:hover {
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    table {
+        font-size: 12px;
+    }
+
+    .icon-link {
+        font-size: 16px;
+        padding: 4px;
+    }
+}
+
+.bootstrap-select .dropdown-menu {
+    max-height: 200px !important;
+    overflow-y: auto;
+}
+</style>
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!--<h3>Garage Management</h3>-->
+
+<!-- Tabs -->
+<ul class="nav nav-tabs flex-nowrap overflow-auto" id="myTab" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#history">
+          🕘 Vehicle History
+        </button>
+    </li>
+
+  <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#customer">
+      👤 Add Customer
+    </button>
+  </li>
+
+  <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#vehicle">
+      🚗 Add Vehicle
+    </button>
+  </li>
+
+  <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#visit">
+      🛠️ Add Visit
+    </button>
+  </li>
+
+</ul>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput = document.getElementById("searchInput");
+
+    if (searchInput) {
+        searchInput.addEventListener("keyup", function () {
+            let value = this.value.toLowerCase();
+            let rows = document.querySelectorAll("#customerTable tbody tr");
+
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+
+                if (text.includes(value)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    }
+
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+
+    if (tab) {
+        const trigger = document.querySelector(`[data-bs-target="#${tab}"]`);
+        if (trigger) {
+            new bootstrap.Tab(trigger).show();
+        }
+    }
+
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.querySelector('[name="number_plate"]');
+
+    if (input) {
+        input.addEventListener('input', function () {
+            this.value = this.value.toUpperCase();
+        });
+    }
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const vehicleSearch = document.getElementById("vehicleSearchInput");
+
+    if (vehicleSearch) {
+        vehicleSearch.addEventListener("keyup", function () {
+
+            let value = this.value.toLowerCase();
+            let rows = document.querySelectorAll("#vehicleTable tbody tr");
+
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+
+                if (text.includes(value)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+        });
+    }
+
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const visitSearch = document.getElementById("visitSearch");
+
+    if (visitSearch) {
+        visitSearch.addEventListener("keyup", function () {
+
+            let value = this.value.toLowerCase();
+            let rows = document.querySelectorAll("#visitTable tbody tr");
+
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(value) ? "" : "none";
+            });
+
+        });
+    }
+
+});
+
+$(document).ready(function(){
+    if (window.innerWidth < 768) {
+        $('.selectpicker').selectpicker('mobile');
+    } else {
+        $('.selectpicker').selectpicker();
+    }
+});
+</script>
+
+
+<div class="tab-content mt-3">
+
+    <!-- CUSTOMER TAB -->
+    <div class="tab-pane fade" id="customer">
+
+        <!-- 🔵 CARD 1: ADD CUSTOMER -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">👤 Add Customer</h6>
+            </div>
+
+            <div class="card-body">
+
+                {% if edit_id %}
+                <h6 class="text-warning">Editing Customer ID: {{ edit_id }}</h6>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="customer_submit">
+
+                    <div class="row">
+
+                        <div class="col-12 col-md-3 mb-2">
+                            <label class="form-label">👦 First Name</label>
+                            {{ form.first_name }}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                        </div>
+
+                        <div class="col-12 col-md-3 mb-2">
+                            <label class="form-label">🧾 Last Name</label>
+                            {{ form.last_name }}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                        </div>
+
+                        <div class="col-12 col-md-3 mb-2">
+                            <label class="form-label">📞 Phone</label>
+                            {{ form.phone }}
+                            <div class="text-danger">{{ form.phone.errors }}</div>
+                        </div>
+
+                        <div class="col-12 col-md-3 mb-2">
+                            <label class="form-label">🏠 Address</label>
+                            {{ form.address }}
+                            <div class="text-danger">{{ form.address.errors }}</div>
+                        </div>
+
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button class="btn btn-light border px-5">
+                            {% if edit_id %} Update {% else %} Save {% endif %}
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- 🟢 CARD 2: CUSTOMER LIST -->
+        <div class="card shadow-sm">
+
+            <!-- Header with search -->
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">📋 Customer List</h6>
+
+                <div class="d-flex align-items-center">
+                    <label class="me-2 mb-0 fw-bold">🔍</label>
+                    <input type="text"
+                           id="searchInput"
+                           class="form-control form-control-sm"
+                           style="width: 200px;"
+                           placeholder="Search...">
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mb-0" id="customerTable">
+
+                        <thead class="table-dark">
+                        <tr>
+                            <th>🆔 ID</th>
+                            <th>👤 Full Name</th>
+                            <th>📞 Phone</th>
+                            <th>🏠 Address</th>
+                            <th>⚙️ Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for c in customers %}
+                        <tr>
+                            <td>{{ c.id }}</td>
+                            <td>{{ c.first_name|title }} {{ c.last_name|title }}</td>
+                            <td>{{ c.phone }}</td>
+                            <td>{{ c.address }}</td>
+                            <td>
+                                <a href="?edit_id={{ c.id }}" class="icon-link">✏️</a>
+                                <a href="{% url 'delete_customer' c.id %}"
+                                   class="icon-link"
+                                   onclick="return confirm('Are you sure?')">
+                                    🗑️
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                    <div class="d-flex justify-content-between align-items-center p-2">
+
+                        <div>
+                            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </div>
+
+                        <div>
+
+                            {% if page_obj.has_previous %}
+                            <a href="?page=1" class="btn btn-sm btn-outline-primary">First</a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-outline-primary">Previous</a>
+                            {% endif %}
+
+                            <span class="mx-2 fw-bold">
+                                Page {{ page_obj.number }}
+                            </span>
+
+                            {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}" class="btn btn-sm btn-outline-primary">Next</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-outline-primary">Last</a>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Add Vehicle TAB -->
+    <div class="tab-pane fade" id="vehicle">
+
+        <!-- 🔵 CARD 1 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">🚗 Add Vehicle</h6>
+            </div>
+
+            <div class="card-body">
+
+                {% if vehicle_edit_id %}
+                <h6 class="text-warning">Editing Vehicle ID: {{ vehicle_edit_id }}</h6>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="vehicle_submit">
+
+                    <div class="row">
+
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">🔢 Vehicle Number</label>
+                            {{ vehicle_form.number_plate }}
+                            <div class="text-danger">{{ vehicle_form.number_plate.errors }}</div>
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">🚚 Vehicle Type</label>
+                            {{ vehicle_form.vehicle_type }}
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">👤 Customer</label>
+                            {{ vehicle_form.customer }}
+                        </div>
+
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button class="btn btn-light border px-5">
+                            {% if vehicle_edit_id %} Update {% else %} Save {% endif %}
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- 🟢 CARD 2 -->
+        <div class="card shadow-sm">
+
+
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">📋 Vehicle List</h6>
+
+                <div class="d-flex align-items-center">
+                    <label class="me-2 mb-0 fw-bold">🔍</label>
+                    <input type="text"
+                           id="vehicleSearchInput"
+                           class="form-control form-control-sm"
+                           style="width: 200px;"
+                           placeholder="Search...">
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mb-0" id="vehicleTable">
+
+                        <thead class="table-dark">
+                        <tr>
+                            <th>🆔 ID</th>
+                            <th>🔢 Vehicle Number</th>
+                            <th>🚚 Type</th>
+                            <th>📅 Created Date</th>
+                            <th>👤 Owner</th>
+                            <th>⚙️ Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for v in vehicles %}
+                        <tr>
+                            <td>{{ v.id }}</td>
+                            <td>{{ v.number_plate }}</td>
+                            <td>{{ v.vehicle_type }}</td>
+                            <td>{{ v.created_at|date:"d-m-Y h:i A" }}</td>
+                            <td>{{ v.customer.first_name|title }} {{ v.customer.last_name|title }}</td>
+                            <td>
+                                <a href="?tab=vehicle&vehicle_edit_id={{ v.id }}" class="icon-link">✏️</a>
+                                <a href="{% url 'delete_vehicle' v.id %}"
+                                   class="icon-link"
+                                   onclick="return confirm('Are you sure?')">
+                                    🗑️
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                    <div class="d-flex justify-content-between p-2">
+
+                        <div>
+                            Page {{ vehicle_page_obj.number }} of {{ vehicle_page_obj.paginator.num_pages }}
+                        </div>
+
+                        <div>
+                            {% if vehicle_page_obj.has_previous %}
+                                <a href="?tab=vehicle&vehicle_page={{ vehicle_page_obj.previous_page_number }}" class="btn btn-sm btn-outline-primary">Previous</a>
+                            {% endif %}
+
+                            {% if vehicle_page_obj.has_next %}
+                                <a href="?tab=vehicle&vehicle_page={{ vehicle_page_obj.next_page_number }}" class="btn btn-sm btn-outline-primary">Next</a>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Add Visit TAB -->
+    <div class="tab-pane fade" id="visit">
+
+        <!-- 🔵 CARD 1 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">🛠️ Add Visit</h6>
+            </div>
+
+            <div class="card-body">
+
+                {% if visit_edit_id %}
+                    <h6 class="text-warning">Editing Visit ID: {{ visit_edit_id }}</h6>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="visit_submit">
+
+                    <div class="row">
+
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">🚚 Vehicle</label>
+                            {{ visit_form.vehicle }}
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">🛣️ KM Reading</label>
+                            {{ visit_form.km_reading }}
+                            <div class="text-danger">{{ visit_form.km_reading.errors }}</div>
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">📝 Notes</label>
+                            {{ visit_form.notes }}
+                        </div>
+
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button class="btn btn-light border px-5">
+                            {% if visit_edit_id %} Update {% else %} Save {% endif %}
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- 🟢 CARD 2 -->
+        <div class="card shadow-sm">
+
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">📋 Visit List</h6>
+
+
+                <div class="d-flex align-items-center">
+                    <label class="me-2 mb-0 fw-bold">🔍</label>
+                    <input type="text"
+                           id="visitSearch"
+                           class="form-control form-control-sm"
+                           style="width: 200px;"
+                           placeholder="Search...">
+                </div>
+
+<!--                <input type="text"-->
+<!--                       id="visitSearch"-->
+<!--                       class="form-control form-control-sm"-->
+<!--                       style="width: 200px;"-->
+<!--                       placeholder="Search...">-->
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mb-0" id="visitTable">
+
+                        <thead class="table-dark">
+                            <tr>
+                                <th>🆔 ID</th>
+                                <th>🚚 Vehicle</th>
+                                <th>👤 Owner</th>
+                                <th>📝 Notes</th>
+                                <th>🛣️ KM</th>
+                                <th>📅 Date</th>
+                                <th>⚙️ Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for v in visits %}
+                            <tr>
+                                <td>{{ v.id }}</td>
+                                <td>{{ v.vehicle.number_plate }}</td>
+                                <td>{{ v.vehicle.customer.first_name|title }} {{ v.vehicle.customer.last_name|title }}</td>
+                                <td>{{ v.notes }}</td>
+                                <td>{{ v.km_reading }}</td>
+                                <td>{{ v.created_at|date:"d-m-Y h:i A" }}</td>
+                                <td>
+                                    <a href="?tab=visit&visit_edit_id={{ v.id }}">✏️</a>
+                                    <a href="{% url 'delete_visit' v.id %}" onclick="return confirm('Delete?')">🗑️</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                    <div class="d-flex justify-content-between p-2">
+
+                        <div>
+                            Page {{ visit_page_obj.number }} of {{ visit_page_obj.paginator.num_pages }}
+                        </div>
+
+                        <div>
+                            {% if visit_page_obj.has_previous %}
+                                <a href="?tab=visit&visit_page={{ visit_page_obj.previous_page_number }}" class="btn btn-sm btn-outline-primary">Previous</a>
+                            {% endif %}
+
+                            {% if visit_page_obj.has_next %}
+                                <a href="?tab=visit&visit_page={{ visit_page_obj.next_page_number }}" class="btn btn-sm btn-outline-primary">Next</a>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Vehicle History TAB -->
+    <div class="tab-pane fade show active" id="history">
+
+        <!-- 🔵 SEARCH CARD -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0">🔍 Search Vehicle History</h6>
+            </div>
+
+            <div class="card-body">
+
+                <form method="get">
+                    <input type="hidden" name="tab" value="history">
+
+                    <div class="row g-1">
+
+                    <div class="col-9">
+                        <input type="text"
+                               name="vehicle_search"
+                               value="{{ search_number|default:'' }}"
+                               class="form-control"
+                               placeholder="Number (AP-09-TS-1234)">
+                    </div>
+
+                    <div class="col-3">
+                        <button class="btn btn-primary">Search</button>
+                    </div>
+
+                </div>
+                </form>
+
+            </div>
+        </div>
+
+        {% if history_vehicle %}
+
+        <!-- 🟢 VEHICLE INFO -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h6>
+                    🚚 {{ history_vehicle.number_plate }} |
+                    👤 {{ history_vehicle.customer.first_name|title }} {{ history_vehicle.customer.last_name|title }} |
+                    📞 {{ history_vehicle.customer.phone }}
+                </h6>
+            </div>
+        </div>
+
+        <!-- 📋 VISIT HISTORY -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0">📋 Visit History</h6>
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mb-0">
+
+                        <thead class="table-dark">
+                            <tr>
+                                <th>🆔 ID</th>
+                                <th>📝 Notes</th>
+                                <th>🛣️ KM</th>
+                                <th>📅 Date</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for v in history_visits %}
+                            <tr>
+                                <td>{{ v.id }}</td>
+                                <td>{{ v.notes }}</td>
+                                <td>{{ v.km_reading }}</td>
+                                <td>{{ v.created_at|date:"d-m-Y h:i A" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No visits found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                    <div class="d-flex justify-content-between p-2">
+
+                        <div>
+                            Page {{ history_page_obj.number }} of {{ history_page_obj.paginator.num_pages }}
+                        </div>
+
+                        <div>
+                            {% if history_page_obj.has_previous %}
+                                <a href="?tab=history&vehicle_search={{ search_number }}&history_page={{ history_page_obj.previous_page_number }}" class="btn btn-sm btn-outline-primary">Previous</a>
+                            {% endif %}
+
+                            {% if history_page_obj.has_next %}
+                                <a href="?tab=history&vehicle_search={{ search_number }}&history_page={{ history_page_obj.next_page_number }}" class="btn btn-sm btn-outline-primary">Next</a>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+            {% elif search_number %}
+                <div class="alert alert-danger text-center">
+                    ❌ Vehicle not found
+                </div>
+            {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
